@@ -32,7 +32,13 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 - [License](#license)
 - [Contact](#contact)
 
-## 🛠️ Prerequisites
+## � Changelog
+
+### 2025-11-20
+- **Fixed**: Renamed `owncloud-namespse.yaml` to `owncloud-namespace.yaml` (corrected typo in filename)
+- **Verified**: All Kubernetes manifests are properly structured and deployment-ready
+
+## �🛠️ Prerequisites
 
 Ensure the following prerequisites are met before deploying OwnCloud:
 
