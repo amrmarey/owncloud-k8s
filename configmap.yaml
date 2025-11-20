@@ -6,6 +6,7 @@ metadata:
 data:
   OWNCLOUD_DOMAIN: "localhost:8080"
   OWNCLOUD_TRUSTED_DOMAINS: "owncloud.almarey.work"
+  OWNCLOUD_DB_TYPE: "mysql"
   OWNCLOUD_DB_NAME: "owncloud"
   OWNCLOUD_DB_USERNAME: "owncloud"
   OWNCLOUD_DB_HOST: "mariadb"
