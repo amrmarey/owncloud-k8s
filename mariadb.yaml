@@ -51,6 +51,33 @@ spec:
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -u
+                - root
+                - --password=owncloud
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -u
+                - root
+                - --password=owncloud
+            initialDelaySeconds: 10
+            periodSeconds: 5
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:

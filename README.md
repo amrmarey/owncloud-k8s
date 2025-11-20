@@ -13,6 +13,7 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 - **Secure Storage**: Manages sensitive data using Kubernetes Secrets.
 - **Customizable Configuration**: Easily configure the setup with ConfigMaps.
 - **Optimized Performance**: Uses Redis for caching to speed up OwnCloud operations.
+- **Production Ready**: Includes resource limits, health checks, and monitoring.
 
 ## 📋 Table of Contents
 
@@ -28,23 +29,29 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
   - [Step 7: Deploy Ingress](#step-7-deploy-ingress)
 - [Configuration Files](#configuration-files)
 - [Accessing OwnCloud](#accessing-owncloud)
+- [Changelog](#changelog)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
 
-## � Changelog
+## 📝 Changelog
 
 ### 2025-11-20
+- **Updated**: Pinned ownCloud server to version 10.16 (latest stable before EOL on Dec 31, 2025)
+- **Added**: Resource requests and limits for all deployments (ownCloud, MariaDB, Redis)
+- **Added**: Liveness and readiness probes for better health monitoring
+- **Improved**: Production-ready configuration with proper resource management
 - **Fixed**: Renamed `owncloud-namespse.yaml` to `owncloud-namespace.yaml` (corrected typo in filename)
 - **Verified**: All Kubernetes manifests are properly structured and deployment-ready
+- **Note**: MariaDB 10.11 and Redis 6 versions confirmed as recommended versions
 
-## �🛠️ Prerequisites
+## 🛠️ Prerequisites
 
 Ensure the following prerequisites are met before deploying OwnCloud:
 
 - **Kubernetes Cluster**: v1.19 or higher
 - **kubectl**: Installed and configured to access the cluster
-- **Helm**: Version 3.x
+- **Helm**: Version 3.x (optional)
 - **Ingress Controller**: Installed (e.g., Nginx, Traefik)
 - **Persistent Volume (PV)**: Supported in the infrastructure
 
@@ -52,9 +59,9 @@ Ensure the following prerequisites are met before deploying OwnCloud:
 
 The deployment involves several key components:
 
-1. **OwnCloud**: The core application for cloud storage.
-2. **MariaDB**: Database backend for data management.
-3. **Redis**: Caching service to enhance performance.
+1. **OwnCloud**: The core application for cloud storage (version 10.16).
+2. **MariaDB**: Database backend for data management (version 10.11).
+3. **Redis**: Caching service to enhance performance (version 6).
 4. **Ingress**: Provides external access to OwnCloud.
 5. **Secrets & ConfigMaps**: Manages sensitive information and application configurations.
 
@@ -124,15 +131,26 @@ The repository includes the following configuration files:
 
 - `owncloud-namespace.yaml`: Namespace definition.
 - `owncloud-secret.yaml`: Secrets for sensitive data.
-- `mariadb.yaml`: MariaDB deployment manifest.
-- `redis.yaml`: Redis deployment manifest.
+- `mariadb.yaml`: MariaDB 10.11 deployment with health checks and resource limits.
+- `redis.yaml`: Redis 6 deployment with health checks and resource limits.
 - `configmap.yaml`: ConfigMap for OwnCloud configuration.
-- `owncloud.yaml`: OwnCloud deployment manifest.
+- `owncloud.yaml`: OwnCloud 10.16 deployment with health checks and resource limits.
 - `owncloud-ingress.yaml`: Ingress resource for external access.
 
 ## 🌐 Accessing OwnCloud
 
 After deployment, access OwnCloud through the URL specified in the `owncloud-ingress.yaml` file. Ensure DNS is correctly set up to route to the Ingress Controller's external IP.
+
+Default credentials (⚠️ **Change these in production!**):
+- **Username**: admin
+- **Password**: admin
+
+## ⚠️ Important Notes
+
+- **ownCloud 10.x End-of-Life**: ownCloud 10 will reach EOL on **December 31, 2025**. Plan migration to ownCloud Infinite Scale (oCIS) for continued support.
+- **Security**: Change default passwords in `owncloud-secret.yaml` before deploying to production.
+- **Resource Limits**: Adjust resource requests and limits based on your workload requirements.
+- **Persistent Storage**: Ensure your cluster has a StorageClass that supports dynamic provisioning.
 
 ## 🤝 Contributing
 

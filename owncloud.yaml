@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: owncloud
-          image: owncloud/server:latest
+          image: owncloud/server:10.16
           ports:
             - containerPort: 8080
           envFrom:
@@ -40,6 +40,25 @@ spec:
           volumeMounts:
             - name: files-storage
               mountPath: /mnt/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
         - name: files-storage
           persistentVolumeClaim:
