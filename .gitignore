@@ -1,0 +1,62 @@
+# Kubernetes Secrets (never commit real secrets!)
+*-secret.yaml
+*.secret.yaml
+secrets/
+*.key
+*.crt
+*.pem
+
+# Environment-specific configs
+.env
+.env.local
+*.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# OS-specific files
+Thumbs.db
+.DS_Store
+
+# Helm charts (if using Helm)
+charts/
+*.tgz
+
+# Terraform state (if using Terraform)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Archive folder (optional - uncomment if you don't want to track it)
+# archive/
+
+# Local testing artifacts
+test-results/
+coverage/
+
+# kubectl cache
+.kube/cache/
+
+# Custom local configurations
+local/
+*.local.yaml

@@ -5,7 +5,25 @@
 [![Helm 3](https://img.shields.io/badge/Helm-3.x-orange.svg)](https://helm.sh/)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manifests. This setup leverages **MariaDB** as a database backend, **Redis** for caching, and uses Kubernetes **Ingress** for managing external access.
+Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manifests. This setup leverages **PostgreSQL** as a database backend, **Redis** for caching, and uses Kubernetes **Ingress** for managing external access.
+
+## ⚠️ IMPORTANT DISCLAIMER
+
+> **FOR EDUCATIONAL AND LEARNING PURPOSES ONLY**
+>
+> This project is provided as a learning resource and demonstration of Kubernetes deployment concepts. It is **NOT intended for production use** without proper security review, testing, and hardening.
+>
+> **Key Points:**
+> - ✋ **No Warranty**: Provided "as is" without any guarantees
+> - 🔒 **Security**: You are responsible for securing your deployment
+> - 📚 **Educational**: Intended for learning and experimentation
+> - ⚖️ **No Liability**: Author is not liable for any damages or issues
+> - 🔐 **Change Defaults**: Always change default passwords and secrets
+> - 📋 **Compliance**: Ensure compliance with applicable laws and licenses
+>
+> **By using this project, you acknowledge that you do so entirely at your own risk.**
+>
+> See the [LICENSE](LICENSE) file for complete terms and conditions.
 
 ## 🚀 Features
 
@@ -17,19 +35,97 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 - **Customizable Configuration**: Easily configure the setup with ConfigMaps
 - **Optimized Performance**: Uses Redis for caching and session management
 - **Best Practices**: Follows ownCloud's official Kubernetes deployment recommendations
+- **Multi-Environment**: Separate configurations for KIND (local) and production deployments
+
+## 📁 Project Structure
+
+```
+owncloud-k8s/
+├── kind/                          # KIND (local development) deployment
+│   ├── README.md                  # KIND-specific documentation
+│   ├── scripts/                   # KIND deployment scripts
+│   │   ├── deploy-kind.sh         # Automated deployment
+│   │   ├── diagnose-pvc.sh        # PVC diagnostics
+│   │   └── fix-pvc.sh             # PVC troubleshooting
+│   ├── owncloud-namespace.yaml
+│   ├── owncloud-secret.yaml
+│   ├── configmap.yaml
+│   ├── storageclass.yaml
+│   ├── postgresql.yaml
+│   ├── redis.yaml
+│   ├── owncloud.yaml
+│   └── argocd-application-kind.yaml
+├── production/                    # Production deployment
+│   ├── README.md                  # Production-specific documentation
+│   ├── scripts/                   # Production deployment scripts
+│   │   └── deploy-argocd.sh       # ArgoCD setup
+│   ├── owncloud-namespace.yaml
+│   ├── owncloud-secret.yaml
+│   ├── configmap.yaml
+│   ├── storageclass.yaml
+│   ├── postgresql.yaml
+│   ├── redis.yaml
+│   ├── owncloud.yaml
+│   ├── owncloud-ingress.yaml
+│   └── argocd-application.yaml
+├── docs/                          # Documentation
+│   ├── FOLDER-STRUCTURE.md        # Project structure guide
+│   ├── SCALING-NOTES.md           # Scaling best practices
+│   ├── STORAGE_MANAGEMENT.md      # Storage expansion guide
+│   ├── TROUBLESHOOT-PVC.md        # PVC troubleshooting
+│   ├── KIND-ARGOCD-GUIDE.md       # ArgoCD with KIND
+│   ├── DEPLOYMENT-CHECKLIST.md    # Pre-deployment checklist
+│   └── ... (other documentation)
+├── archive/                       # Archived/legacy files
+└── README.md                      # This file
+```
+
+## 🚀 Quick Start
+
+### For Local Development (KIND)
+
+```bash
+# 1. Create KIND cluster
+kind create cluster --name owncloud
+
+# 2. Deploy using script (recommended)
+./kind/scripts/deploy-kind.sh
+
+# 3. Access ownCloud
+kubectl port-forward -n owncloud svc/owncloud 8080:8080
+# Open http://localhost:8080
+```
+
+See [`kind/README.md`](kind/README.md) for detailed KIND deployment instructions.
+
+### For Production
+
+```bash
+# 1. Review and update configurations
+# - Update secrets in production/owncloud-secret.yaml
+# - Update ingress hostname in production/owncloud-ingress.yaml
+# - Verify storage class in production/storageclass.yaml
+
+# 2. Deploy all resources
+kubectl apply -f production/
+
+# 3. Verify deployment
+kubectl get pods -n owncloud
+kubectl get svc -n owncloud
+kubectl get ingress -n owncloud
+```
+
+> **⚠️ Security Warning**: Before deploying to production, review the [SECURITY.md](SECURITY.md) file for critical security considerations and best practices.
+
+See [`production/README.md`](production/README.md) for detailed production deployment instructions.
 
 ## 📋 Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Architecture Overview](#architecture-overview)
 - [Getting Started](#getting-started)
-  - [Step 1: Create Namespace](#step-1-create-namespace)
-  - [Step 2: Create Secrets](#step-2-create-secrets)
-  - [Step 3: Deploy PostgreSQL](#step-3-deploy-postgresql)
-  - [Step 4: Deploy Redis](#step-4-deploy-redis)
-  - [Step 5: Deploy OwnCloud ConfigMap](#step-5-deploy-owncloud-configmap)
-  - [Step 6: Deploy OwnCloud](#step-6-deploy-owncloud)
-  - [Step 7: Deploy Ingress](#step-7-deploy-ingress)
+  - [KIND (Local) Deployment](#kind-local-deployment)
+  - [Production Deployment](#production-deployment)
 - [Configuration Files](#configuration-files)
 - [Accessing OwnCloud](#accessing-owncloud)
 - [Changelog](#changelog)
@@ -40,6 +136,11 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 ## 📝 Changelog
 
 ### 2025-11-22 (Latest)
+- **Organized**: Separated KIND and production configurations into dedicated folders
+- **Added**: Comprehensive README files for both KIND and production deployments
+- **Improved**: Project structure for easier deployment and maintenance
+
+### 2025-11-22 (Earlier Updates)
 - **Scaled**: OwnCloud deployment to 2 replicas for high availability
 - **Updated**: Storage access mode to ReadWriteMany for multi-pod support
 - **Added**: Pod anti-affinity to distribute pods across different nodes
@@ -47,7 +148,7 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 - **Implemented**: ownCloud official best practices for Kubernetes deployments
 - **Added**: Comprehensive scaling documentation (`SCALING-NOTES.md`)
 
-### 2025-11-22 (Earlier)
+### 2025-11-22 (Database Migration)
 - **Migrated**: Database from MariaDB to PostgreSQL 17 for better performance and reliability
 - **Optimized**: PostgreSQL configuration with OwnCloud best practices
 - **Updated**: Redis to version 7.4 (latest stable LTS)
@@ -58,22 +159,27 @@ Deploy an **OwnCloud** instance on a Kubernetes cluster using the provided manif
 
 ### 2025-11-20
 - **Updated**: Pinned ownCloud server to version 10.16 (latest stable before EOL on Dec 31, 2025)
-- **Added**: Resource requests and limits for all deployments (ownCloud, MariaDB, Redis)
+- **Added**: Resource requests and limits for all deployments (ownCloud, PostgreSQL, Redis)
 - **Added**: Liveness and readiness probes for better health monitoring
 - **Improved**: Production-ready configuration with proper resource management
 - **Fixed**: Renamed `owncloud-namespse.yaml` to `owncloud-namespace.yaml` (corrected typo in filename)
 - **Verified**: All Kubernetes manifests are properly structured and deployment-ready
-- **Note**: MariaDB 10.11 and Redis 6 versions confirmed as recommended versions
 
 ## 🛠️ Prerequisites
 
 Ensure the following prerequisites are met before deploying OwnCloud:
 
+### For KIND (Local Development)
+- **KIND**: Kubernetes IN Docker installed
+- **kubectl**: Installed and configured
+- **Docker**: Running on your machine
+
+### For Production
 - **Kubernetes Cluster**: v1.19 or higher
 - **kubectl**: Installed and configured to access the cluster
-- **Helm**: Version 3.x (optional)
 - **Ingress Controller**: Installed (e.g., Nginx, Traefik)
 - **Persistent Volume (PV)**: Supported in the infrastructure
+- **Storage Class**: Supporting ReadWriteMany for multi-pod deployments (NFS, CephFS, or cloud provider file storage)
 
 ## 🏗️ Architecture Overview
 
@@ -82,93 +188,80 @@ The deployment involves several key components:
 1. **OwnCloud**: The core application for cloud storage (version 10.16).
 2. **PostgreSQL**: Database backend for data management (version 17 - latest stable).
 3. **Redis**: Caching service to enhance performance (version 7.4 LTS).
-4. **Ingress**: Provides external access to OwnCloud.
+4. **Ingress**: Provides external access to OwnCloud (production only).
 5. **Secrets & ConfigMaps**: Manages sensitive information and application configurations.
 
 ## 🏁 Getting Started
 
-Follow these steps to deploy OwnCloud in your Kubernetes environment.
+Choose your deployment environment:
 
-### Step 1: Create Namespace
+Choose your deployment environment:
 
-Create a dedicated namespace for the OwnCloud deployment:
+### KIND (Local) Deployment
 
-\`\`\`bash
-kubectl apply -f owncloud-namespace.yaml
-\`\`\`
+For local development and testing using KIND, see the comprehensive guide in [`kind/README.md`](kind/README.md).
 
-### Step 2: Create StorageClass
+**Quick summary:**
+1. Create a KIND cluster
+2. Run the deployment script (`deploy-kind.ps1` or `deploy-kind.sh`)
+3. Port-forward to access ownCloud locally
 
-Apply the StorageClass to enable dynamic volume expansion:
+### Production Deployment
 
-\`\`\`bash
-kubectl apply -f storageclass.yaml
-\`\`\`
+For production deployment, see the comprehensive guide in [`production/README.md`](production/README.md).
 
-**Note**: If you're using a cloud provider (AWS, GCP, Azure), you may want to use their default storage class instead. See `STORAGE_MANAGEMENT.md` for details.
-
-### Step 3: Create Secrets
-
-Apply the secrets manifest to manage sensitive data:
-
-\`\`\`bash
-kubectl apply -f owncloud-secret.yaml
-\`\`\`
-
-### Step 4: Deploy PostgreSQL
-
-Deploy the PostgreSQL database backend:
-
-\`\`\`bash
-kubectl apply -f postgresql.yaml
-\`\`\`
-
-### Step 5: Deploy Redis
-
-Set up Redis for caching:
-
-\`\`\`bash
-kubectl apply -f redis.yaml
-\`\`\`
-
-### Step 6: Deploy OwnCloud ConfigMap
-
-Apply the ConfigMap to configure OwnCloud settings:
-
-\`\`\`bash
-kubectl apply -f configmap.yaml
-\`\`\`
-
-### Step 7: Deploy OwnCloud
-
-Deploy the OwnCloud instance:
-
-\`\`\`bash
-kubectl apply -f owncloud.yaml
-\`\`\`
-
-### Step 8: Deploy Ingress
-
-Set up the Ingress to manage external access:
-
-\`\`\`bash
-kubectl apply -f owncloud-ingress.yaml
-\`\`\`
+**Quick summary:**
+1. Review and update configurations (secrets, ingress, storage)
+2. Apply all manifests: `kubectl apply -f production/`
+3. Verify deployment and access via ingress
 
 ## 🗂️ Configuration Files
 
-The repository includes the following configuration files:
+### KIND (Local Development)
+Located in `kind/` directory:
+- Single replica deployment
+- ReadWriteOnce storage (local-path provisioner)
+- No ingress (use port-forward)
+- Optimized for local testing
 
-- `owncloud-namespace.yaml`: Namespace definition.
-- `storageclass.yaml`: StorageClass with dynamic volume expansion enabled.
-- `owncloud-secret.yaml`: Secrets for sensitive data.
-- `postgresql.yaml`: PostgreSQL 17 deployment optimized for OwnCloud with health checks, resource limits, and expandable storage (10Gi).
-- `redis.yaml`: Redis 7.4 LTS deployment with health checks, resource limits, and expandable storage (5Gi).
-- `configmap.yaml`: ConfigMap for OwnCloud configuration (PostgreSQL settings).
-- `owncloud.yaml`: OwnCloud 10.16 deployment with **2 replicas**, pod anti-affinity, PodDisruptionBudget, health checks, resource limits, and expandable ReadWriteMany storage (10Gi).
-- `owncloud-ingress.yaml`: Ingress resource for external access.
-- `STORAGE_MANAGEMENT.md`: Comprehensive guide for managing and expanding storage volumes.
-- `SCALING-NOTES.md`: Detailed documentation on scaling configuration and ownCloud best practices.
+### Production
+Located in `production/` directory:
+- 2-replica deployment with high availability
+- ReadWriteMany storage for multi-pod access
+- Ingress for external access
+- Pod anti-affinity and disruption budgets
+- Resource limits and health checks
+
+### Common Components
+Both environments include:
+- **Namespace**: `owncloud-namespace.yaml`
+- **Secrets**: `owncloud-secret.yaml` (database credentials)
+- **ConfigMap**: `configmap.yaml` (ownCloud configuration)
+- **StorageClass**: `storageclass.yaml` (with volume expansion)
+- **PostgreSQL**: `postgresql.yaml` (version 17, optimized for ownCloud)
+- **Redis**: `redis.yaml` (version 7.4 LTS)
+- **OwnCloud**: `owncloud.yaml` (version 10.16)
+
+### Deployment Scripts
+
+**KIND Scripts** (in `kind/scripts/`):
+- `deploy-kind.sh` - Automated KIND deployment
+- `diagnose-pvc.sh` - PVC troubleshooting utility
+- `fix-pvc.sh` - PVC issue resolution
+
+**Production Scripts** (in `production/scripts/`):
+- `deploy-argocd.sh` - ArgoCD setup for GitOps
+
+### Documentation
+
+All documentation is located in the `docs/` folder:
+- `FOLDER-STRUCTURE.md` - Project structure guide
+- `SCALING-NOTES.md` - Scaling configuration and best practices
+- `STORAGE_MANAGEMENT.md` - Storage expansion guide
+- `TROUBLESHOOT-PVC.md` - PVC troubleshooting
+- `KIND-ARGOCD-GUIDE.md` - ArgoCD with KIND setup
+- `DEPLOYMENT-CHECKLIST.md` - Pre-deployment checklist
+- And more...
 
 ## 🌐 Accessing OwnCloud
 
@@ -180,11 +273,18 @@ Default credentials (⚠️ **Change these in production!**):
 
 ## ⚠️ Important Notes
 
+### Security & Legal
+- **⚠️ EDUCATIONAL USE ONLY**: This project is for learning purposes. Do not use in production without proper security review and hardening.
+- **🔐 CHANGE ALL DEFAULTS**: Default passwords (`admin/admin`) are for demonstration only. **NEVER use in production!**
+- **🔒 Security Responsibility**: You are solely responsible for securing your deployment, implementing proper authentication, encryption, and access controls.
+- **📋 No Warranty**: This software is provided "as is" without any warranty. See [LICENSE](LICENSE) for details.
+- **⚖️ Compliance**: Ensure compliance with all applicable laws, regulations, and third-party licenses.
+
+### Technical Considerations
 - **ownCloud 10.x End-of-Life**: ownCloud 10 will reach EOL on **December 31, 2025**. Plan migration to ownCloud Infinite Scale (oCIS) for continued support.
-- **High Availability Storage**: The deployment uses **ReadWriteMany** access mode for 2-pod scaling. Ensure your storage class supports this (NFS, CephFS, cloud provider file storage). See `SCALING-NOTES.md` for details.
-- **Security**: Change default passwords in `owncloud-secret.yaml` before deploying to production.
+- **High Availability Storage**: The deployment uses **ReadWriteMany** access mode for 2-pod scaling. Ensure your storage class supports this (NFS, CephFS, cloud provider file storage). See `docs/SCALING-NOTES.md` for details.
 - **Resource Limits**: Adjust resource requests and limits based on your workload requirements.
-- **Dynamic Storage**: All persistent volumes support expansion without downtime. See `STORAGE_MANAGEMENT.md` for instructions on how to increase storage capacity.
+- **Dynamic Storage**: All persistent volumes support expansion without downtime. See `docs/STORAGE_MANAGEMENT.md` for instructions.
 - **Storage Backend**: The default StorageClass uses local provisioner. For production with multiple replicas, use NFS or cloud provider storage classes (AWS EFS, GCP Filestore, Azure Files) for ReadWriteMany support.
 - **Pod Distribution**: Pod anti-affinity is configured to distribute ownCloud pods across different nodes for better availability.
 
