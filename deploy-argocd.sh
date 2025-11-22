@@ -113,18 +113,7 @@ spec:
   source:
     repoURL: https://github.com/amrmarey/owncloud-k8s.git
     targetRevision: HEAD
-    path: .
-    
-    directory:
-      recurse: false
-      include: |
-        owncloud-namespace.yaml
-        storageclass-kind.yaml
-        owncloud-secret.yaml
-        configmap.yaml
-        postgresql.yaml
-        redis.yaml
-        owncloud-kind.yaml
+    path: kind
   
   destination:
     server: https://kubernetes.default.svc
