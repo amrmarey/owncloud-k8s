@@ -9,26 +9,11 @@ metadata:
 spec:
   project: default
   
-  # Source repository
+  # Source repository - Point to KIND directory
   source:
     repoURL: https://github.com/amrmarey/owncloud-k8s.git
     targetRevision: HEAD
-    path: .
-    
-    # Directory configuration - Exclude all except KIND files
-    directory:
-      recurse: false
-      # Exclude everything except KIND-specific files
-      exclude: |
-        owncloud.yaml
-        storageclass.yaml
-        owncloud-ingress.yaml
-        argocd-application*.yaml
-        *.md
-        *.sh
-        *.ps1
-        .git/**
-        mariadb.yaml.backup
+    path: kind  # Use the kind subdirectory
   
   # Destination cluster and namespace
   destination:

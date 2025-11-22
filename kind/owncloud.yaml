@@ -1,0 +1,93 @@
+# OwnCloud Deployment for KIND Testing
+# This version uses ReadWriteOnce for compatibility with KIND's local-path storage
+# For production with ReadWriteMany, use the main owncloud.yaml
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: files-pvc
+  namespace: owncloud-namespace
+spec:
+  storageClassName: owncloud-storage
+  accessModes:
+    - ReadWriteOnce  # KIND compatible - only one pod can mount at a time
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: owncloud
+  namespace: owncloud-namespace
+spec:
+  replicas: 1  # Limited to 1 for ReadWriteOnce storage
+  selector:
+    matchLabels:
+      app: owncloud
+  template:
+    metadata:
+      labels:
+        app: owncloud
+    spec:
+      containers:
+        - name: owncloud
+          image: owncloud/server:10.16
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: owncloud-config
+            - secretRef:
+                name: owncloud-secrets
+          volumeMounts:
+            - name: files-storage
+              mountPath: /mnt/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          startupProbe:
+            httpGet:
+              path: /status.php
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: files-storage
+          persistentVolumeClaim:
+            claimName: files-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: owncloud
+  namespace: owncloud-namespace
+spec:
+  selector:
+    app: owncloud
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: NodePort
