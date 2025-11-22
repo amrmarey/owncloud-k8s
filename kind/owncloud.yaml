@@ -42,6 +42,11 @@ spec:
                 name: owncloud-config
             - secretRef:
                 name: owncloud-secrets
+          # PostStart hook to configure trusted domains
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "/usr/bin/occ config:system:set trusted_domains 1 --value=localhost && /usr/bin/occ config:system:set trusted_domains 2 --value=* && /usr/bin/occ config:system:set trusted_domains 3 --value=10.244.0.1"]
           volumeMounts:
             - name: files-storage
               mountPath: /mnt/data

@@ -5,7 +5,7 @@ metadata:
   namespace: owncloud-namespace
 data:
   OWNCLOUD_DOMAIN: "localhost:8080"
-  OWNCLOUD_TRUSTED_DOMAINS: "owncloud.almarey.work"
+  OWNCLOUD_TRUSTED_DOMAINS: "owncloud.almarey.work,localhost,127.0.0.1,owncloud,owncloud.owncloud-namespace.svc.cluster.local"
   OWNCLOUD_DB_TYPE: "pgsql"
   OWNCLOUD_DB_NAME: "owncloud"
   OWNCLOUD_DB_USERNAME: "owncloud"
