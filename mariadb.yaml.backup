@@ -4,6 +4,7 @@ metadata:
   name: mysql-pvc
   namespace: owncloud-namespace
 spec:
+  storageClassName: owncloud-storage
   accessModes:
     - ReadWriteOnce
   resources:
@@ -29,7 +30,7 @@ spec:
     spec:
       containers:
         - name: mariadb
-          image: mariadb:10.11
+          image: mariadb:11.4
           args: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
           env:
             - name: MYSQL_ROOT_PASSWORD

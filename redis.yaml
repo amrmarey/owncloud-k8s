@@ -4,6 +4,7 @@ metadata:
   name: redis-pvc
   namespace: owncloud-namespace
 spec:
+  storageClassName: owncloud-storage
   accessModes:
     - ReadWriteOnce
   resources:
@@ -29,7 +30,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:6
+          image: redis:7.4
           args: ["--databases", "1"]
           volumeMounts:
             - name: redis-storage

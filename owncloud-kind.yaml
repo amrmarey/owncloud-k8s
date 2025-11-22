@@ -1,3 +1,7 @@
+# OwnCloud Deployment for KIND Testing
+# This version uses ReadWriteOnce for compatibility with KIND's local-path storage
+# For production with ReadWriteMany, use the main owncloud.yaml
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,7 +10,7 @@ metadata:
 spec:
   storageClassName: owncloud-storage
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce  # KIND compatible - only one pod can mount at a time
   resources:
     requests:
       storage: 10Gi
@@ -19,7 +23,7 @@ metadata:
   name: owncloud
   namespace: owncloud-namespace
 spec:
-  replicas: 2
+  replicas: 1  # Limited to 1 for ReadWriteOnce storage
   selector:
     matchLabels:
       app: owncloud
@@ -28,18 +32,6 @@ spec:
       labels:
         app: owncloud
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                        - owncloud
-                topologyKey: kubernetes.io/hostname
       containers:
         - name: owncloud
           image: owncloud/server:10.16
@@ -99,16 +91,3 @@ spec:
       port: 80
       targetPort: 8080
   type: NodePort
-
----
-
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: owncloud-pdb
-  namespace: owncloud-namespace
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: owncloud

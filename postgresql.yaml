@@ -1,0 +1,138 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-pvc
+  namespace: owncloud-namespace
+spec:
+  storageClassName: owncloud-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: owncloud-namespace
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgresql
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: owncloud-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:17
+          env:
+            - name: POSTGRES_DB
+              value: "owncloud"
+            - name: POSTGRES_USER
+              value: "owncloud"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: owncloud-secrets
+                  key: OWNCLOUD_DB_PASSWORD
+            # PostgreSQL Performance Tuning for OwnCloud
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF8 --locale=C"
+            # Shared Buffers: 25% of available memory (512MB of 2GB)
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          args:
+            # Performance optimization parameters for OwnCloud
+            - "-c"
+            - "shared_buffers=512MB"
+            - "-c"
+            - "effective_cache_size=1536MB"
+            - "-c"
+            - "maintenance_work_mem=128MB"
+            - "-c"
+            - "checkpoint_completion_target=0.9"
+            - "-c"
+            - "wal_buffers=16MB"
+            - "-c"
+            - "default_statistics_target=100"
+            - "-c"
+            - "random_page_cost=1.1"
+            - "-c"
+            - "effective_io_concurrency=200"
+            - "-c"
+            - "work_mem=16MB"
+            - "-c"
+            - "min_wal_size=1GB"
+            - "-c"
+            - "max_wal_size=4GB"
+            - "-c"
+            - "max_worker_processes=4"
+            - "-c"
+            - "max_parallel_workers_per_gather=2"
+            - "-c"
+            - "max_parallel_workers=4"
+            - "-c"
+            - "max_parallel_maintenance_workers=2"
+            # Connection settings
+            - "-c"
+            - "max_connections=100"
+            # Logging for monitoring
+            - "-c"
+            - "log_min_duration_statement=1000"
+            - "-c"
+            - "log_line_prefix=%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h "
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          volumeMounts:
+            - name: postgresql-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: postgresql-storage
+          persistentVolumeClaim:
+            claimName: postgresql-pvc
