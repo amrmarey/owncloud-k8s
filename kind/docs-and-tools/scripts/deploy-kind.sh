@@ -4,8 +4,16 @@
 
 set -e  # Exit on error
 
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Define paths relative to the script
+DOCS_TOOLS_DIR="$(dirname "$SCRIPT_DIR")"
+KIND_ROOT_DIR="$(dirname "$DOCS_TOOLS_DIR")"
+
 echo "🚀 ownCloud KIND Deployment Script"
 echo "==================================="
+echo "Script directory: $SCRIPT_DIR"
+echo "Manifests directory: $KIND_ROOT_DIR"
 echo ""
 
 # Colors
@@ -104,22 +112,23 @@ echo ""
 echo -e "${YELLOW}📦 Deploying ownCloud stack...${NC}"
 
 echo -e "${CYAN}  → Creating namespace...${NC}"
-kubectl apply -f owncloud-namespace.yaml
+kubectl apply -f "$KIND_ROOT_DIR/owncloud-namespace.yaml"
 
 echo -e "${CYAN}  → Creating storage class...${NC}"
-kubectl apply -f storageclass-kind.yaml
+# Using the KIND-specific storage class
+kubectl apply -f "$KIND_ROOT_DIR/storageclass.yaml"
 
 echo -e "${CYAN}  → Creating secrets...${NC}"
-kubectl apply -f owncloud-secret.yaml
+kubectl apply -f "$KIND_ROOT_DIR/owncloud-secret.yaml"
 
 echo -e "${CYAN}  → Creating ConfigMap...${NC}"
-kubectl apply -f configmap.yaml
+kubectl apply -f "$KIND_ROOT_DIR/configmap.yaml"
 
 echo -e "${CYAN}  → Deploying PostgreSQL...${NC}"
-kubectl apply -f postgresql.yaml
+kubectl apply -f "$KIND_ROOT_DIR/postgresql.yaml"
 
 echo -e "${CYAN}  → Deploying Redis...${NC}"
-kubectl apply -f redis.yaml
+kubectl apply -f "$KIND_ROOT_DIR/redis.yaml"
 
 echo -e "${YELLOW}⏳ Waiting for database and cache to be ready...${NC}"
 kubectl wait --for=condition=ready pod -l app=postgresql -n owncloud-namespace --timeout=300s
@@ -128,7 +137,8 @@ kubectl wait --for=condition=ready pod -l app=redis -n owncloud-namespace --time
 echo -e "${GREEN}✅ Database and cache ready${NC}"
 
 echo -e "${CYAN}  → Deploying ownCloud...${NC}"
-kubectl apply -f owncloud-kind.yaml
+# Using the main ownCloud config
+kubectl apply -f "$KIND_ROOT_DIR/owncloud.yaml"
 
 echo -e "${YELLOW}⏳ Waiting for ownCloud to be ready...${NC}"
 kubectl wait --for=condition=ready pod -l app=owncloud -n owncloud-namespace --timeout=300s

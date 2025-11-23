@@ -134,7 +134,7 @@ if [ "$PENDING_PVCS" -gt 0 ]; then
     echo -e "${CYAN}2. Delete and recreate pending PVCs:${NC}"
     echo "   kubectl delete pvc --all -n owncloud-namespace"
     echo "   kubectl delete application owncloud -n argocd"
-    echo "   kubectl apply -f argocd-application-kind.yaml"
+    echo "   kubectl apply -f kind/docs-and-tools/argocd-application-kind.yaml"
     echo ""
 fi
 

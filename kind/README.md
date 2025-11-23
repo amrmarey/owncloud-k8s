@@ -1,105 +1,48 @@
-# KIND (Local Development) Deployment
+# KIND Deployment - Kubernetes Manifests
 
-This directory contains Kubernetes manifests specifically for **KIND (Kubernetes IN Docker)** deployment for local development and testing.
+This directory contains the essential Kubernetes manifests for deploying ownCloud on KIND (Kubernetes IN Docker).
 
-## Files
+## Manifests
 
-- `owncloud-namespace.yaml` - Namespace definition
-- `owncloud-secret.yaml` - Secrets for database and admin credentials
-- `configmap.yaml` - ownCloud configuration
-- `storageclass.yaml` - KIND-compatible storage class (uses local-path provisioner)
-- `storageclass-kind.yaml` - Alternative storage class configuration
-- `postgresql.yaml` - PostgreSQL database
-- `redis.yaml` - Redis cache
-- `owncloud.yaml` - ownCloud application (1 replica, ReadWriteOnce storage)
-- `owncloud-kind.yaml` - Alternative ownCloud configuration for KIND
-- `argocd-application-kind.yaml` - ArgoCD Application manifest for KIND deployment
+The following manifests will be applied by ArgoCD or kubectl:
 
-## Quick Start
+1. **owncloud-namespace.yaml** - Creates the owncloud-namespace
+2. **owncloud-secret.yaml** - Database and admin credentials
+3. **configmap.yaml** - ownCloud configuration
+4. **storageclass.yaml** - KIND-compatible storage class (local-path provisioner)
+5. **postgresql.yaml** - PostgreSQL database deployment
+6. **redis.yaml** - Redis cache deployment
+7. **owncloud.yaml** - ownCloud application deployment
 
-### Prerequisites
+## Deployment with ArgoCD
 
-1. Install KIND:
-   ```bash
-   # See https://kind.sigs.k8s.io/docs/user/quick-start/#installation
-   ```
-
-2. Create a KIND cluster:
-   ```bash
-   kind create cluster --name owncloud
-   ```
-
-### Deployment Options
-
-#### Option 1: Using Deployment Script (Recommended)
+To deploy using ArgoCD:
 
 ```bash
-./kind/scripts/deploy-kind.sh
+# Apply the ArgoCD Application manifest (located in docs-and-tools/)
+kubectl apply -f docs-and-tools/argocd-application-kind.yaml -n argocd
 ```
 
-#### Option 2: With ArgoCD
+ArgoCD will automatically sync and deploy all manifests in this directory.
+
+## Manual Deployment
+
+Alternatively, deploy manually with kubectl:
 
 ```bash
-# Install ArgoCD first, then apply the application
-kubectl apply -f argocd-application-kind.yaml
+kubectl apply -f .
 ```
 
-#### Option 3: Manual Deployment
+## Documentation and Tools
+
+For complete documentation, deployment scripts, and alternative configurations, see the **docs-and-tools/** subdirectory.
+
+## Access ownCloud
+
+After deployment, port-forward to access ownCloud:
 
 ```bash
-# Deploy all manifests in order
-kubectl apply -f owncloud-namespace.yaml
-kubectl apply -f owncloud-secret.yaml
-kubectl apply -f configmap.yaml
-kubectl apply -f storageclass.yaml
-kubectl apply -f postgresql.yaml
-kubectl apply -f redis.yaml
-kubectl apply -f owncloud.yaml
+kubectl port-forward -n owncloud-namespace svc/owncloud 8080:8080
 ```
 
-Or deploy all at once:
-
-```bash
-kubectl apply -f kind/
-```
-
-## Verification
-
-Check deployment status:
-
-```bash
-kubectl get pods -n owncloud
-kubectl get svc -n owncloud
-kubectl get pvc -n owncloud
-```
-
-## Access
-
-Port-forward to access ownCloud locally:
-
-```bash
-kubectl port-forward -n owncloud svc/owncloud 8080:8080
-```
-
-Then access at: http://localhost:8080
-
-## Important Notes
-
-- **ReadWriteOnce storage** - KIND compatible, single node only
-- **Single replica** - Suitable for local testing only
-- **Local-path provisioner** - Uses hostPath storage on the KIND node
-- **Not for production** - For production deployment, use the `../production/` folder
-
-## Troubleshooting
-
-If PVCs are not binding:
-
-```bash
-# Check if local-path provisioner is installed
-kubectl get pods -n local-path-storage
-
-# If not, install it
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
-```
-
-For more troubleshooting, see the root directory documentation files.
+Then open: http://localhost:8080
